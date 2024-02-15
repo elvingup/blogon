@@ -9,8 +9,18 @@ class ArticlesController extends Controller
 {
     public function index(){
 
+        $search = request('search');
+        if($search){
+            $articles = Articles::where([
+                ['title', 'like', "%{$search}%"] 
+            ])->paginate(10);
+        }else{
+            $articles = Articles::paginate(10);
+        }
+
         return view('blog/articles',[
-            'articles' => Articles::paginate(10),
+            'articles' => $articles,
+            'search' => $search 
         ]);
     }
 
