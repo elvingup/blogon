@@ -44,6 +44,9 @@
                                 <img src="/upload/{{$a->image}}" width="120px">
                             </td>
                             <td>
+
+                                @can('deleta-artigo', 1)
+                                    
                                 <a href="{{route('artigos.edit', $a->id)}}">Editar</a>
                                 <a href="#"
                                 onclick="deleteRegistro('delete-form')">Deletar</a>
@@ -51,6 +54,7 @@
                                     @csrf 
                                     @method('DELETE')
                                 </form>
+                                @endcan
                             </td>
                         </tr>                        
                     @endforeach

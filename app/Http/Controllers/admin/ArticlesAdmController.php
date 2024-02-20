@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Articles;
 use App\Models\Categories;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ArticlesAdmController extends Controller
 {
@@ -24,6 +25,9 @@ class ArticlesAdmController extends Controller
      */
     public function create()
     {
+
+        $this->authorize('create');
+
         return view('admin/artigos/create',[
             'categorias'=>Categories::all()
         ]);
@@ -86,7 +90,7 @@ class ArticlesAdmController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $article = new Articles;
+        $article = Articles::find($id);
 
         $article->title = $request->title;
 
@@ -98,9 +102,16 @@ class ArticlesAdmController extends Controller
 
         $article->from_categories = $request->from_categories;
 
+        $imgAtual = $article->image;
         // upload
         if($request->hasFile('image') && $request->file('image')->isValid()){
             
+            // deletar imagem, se houver
+            if(file_exists(public_path('upload/').$imgAtual )){
+                unlink(public_path('upload/').$imgAtual);
+            }
+            
+
             $name = strtotime('now').'.'.$request->image->extension();
 
             $request->image->move(public_path('upload'), $name);
@@ -108,7 +119,9 @@ class ArticlesAdmController extends Controller
             $article->image = $name;
         }
 
-        $article->findOrFail($id)->update($request->all());
+        $article->update();
+
+        return redirect('/admin/artigos')->with('success', 'Registro atualizado com sucesso');
     }
 
     /**
@@ -116,7 +129,15 @@ class ArticlesAdmController extends Controller
      */
     public function destroy(string $id)
     {
-        Articles::findOrFail($id)->delete();
+        $article = Articles::find($id);
+        
+        // verificar se existe uma imagem para deletar
+        if(file_exists(public_path('upload/').$article->image)){
+            // deleta o arquivo
+            unlink(public_path('upload').$article->image);
+        }
+        $article->delete();
+
         return redirect('/admin/artigos')->with('success', 'Registro deletado com sucesso.');
     }
 }
